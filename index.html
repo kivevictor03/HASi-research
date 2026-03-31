@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inżynieria Strukturalna Si-HAp | Raport Analityczny</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            500: '#14b8a6', 
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        dark: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; scroll-behavior: smooth; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 380px;
+            max-height: 400px;
+            padding: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
+
+        .tab-btn { transition: all 0.2s ease; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { border-bottom-color: #14b8a6; color: #134e4a; font-weight: 700; background-color: #f0fdfa; }
+        
+        .doe-card { transition: all 0.2s ease; cursor: pointer; border: 1px solid #e2e8f0; }
+        .doe-card:hover { transform: translateY(-2px); border-color: #14b8a6; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .doe-card.active { border: 2px solid #14b8a6; background-color: #f0fdfa; }
+
+        .formula { font-family: 'Courier New', Courier, monospace; font-weight: 700; }
+        
+        .phase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .phase-card { background: white; border-radius: 0.75rem; padding: 1.25rem; border: 1px solid #e2e8f0; transition: all 0.2s; position: relative; }
+        .phase-card:hover { border-color: #14b8a6; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); z-index: 10; }
+        
+        .protein-tag { display: inline-block; padding: 0.1rem 0.4rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 700; color: #475569; margin: 0.1rem; text-transform: uppercase; }
+
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Chosen Palette: Medical Teal (#14b8a6) & Deep Slate (#1e293b). Normalized proportions for an academic, analytical aesthetic. -->
+    
+    <!-- Application Structure Plan: 
+         - Tab 1: Deep Dive into Concept & Enthesis Anatomy (Preserved).
+         - Tab 2: DoE Matrix with focus on crystallographic shifts.
+         - Tab 3: Process Engineering. INCLUDES THE RESTORED CALCULATOR, CHART, AND NEW REPRODUCIBILITY TABLE.
+         - Tab 4: Massive Expanded Atlas of Calcium Phosphates (CaP).
+         - Tab 5: Full Bibliography integration.
+         - Logic: Font sizes reduced (text-6xl -> text-4xl), paddings normalized (p-16 -> p-8) for a professional, non-overwhelming UI.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Goal: Provide full reproducibility data. Method: New comprehensive HTML table in Tab 3 matching the user's exact parameters.
+         - Goal: Ensure Chart.js renders. Method: Fixed JS init logic to reliably trigger on tab switch.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
+
+    <!-- Header -->
+    <header class="bg-dark text-white pt-10 pb-8 px-6 shadow-md relative z-10">
+        <div class="max-w-6xl mx-auto relative">
+            <div class="flex items-center gap-3 mb-4 text-medical-500">
+                <span class="text-3xl">🔬</span>
+                <span class="font-bold tracking-widest text-xs uppercase">Scientific Research Dissertation v5.0</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold leading-tight mb-4 text-slate-50">
+                Inżynieria Strukturalna Si-HAp
+            </h1>
+            <p class="text-slate-400 max-w-4xl text-base leading-relaxed font-light">
+                Bioaktywne powłoki biomimetyczne dla systemów <span class="text-medical-500 font-semibold">Arthrex TightRope® II & ABS</span>. Zaawansowana optymalizacja regeneracji <em>enthesis</em> poprzez inżynierię defektów sieciowych.
+            </p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-6 flex overflow-x-auto no-scrollbar">
+            <!-- Set default active tab to Koncepcja -->
+            <button onclick="switchTab('koncepcja')" id="nav-koncepcja" class="tab-btn active px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">💡 Koncepcja & Enteza</button>
+            <button onclick="switchTab('krystalografia')" id="nav-krystalografia" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">🔬 DoE & Sieć</button>
+            <button onclick="switchTab('proces')" id="nav-proces" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">⚙️ Proces & Kinetyka</button>
+            <button onclick="switchTab('atlas')" id="nav-atlas" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">🧪 Atlas Fosforanów</button>
+            <button onclick="switchTab('badania')" id="nav-badania" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">📊 Metodyka</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-6xl mx-auto w-full px-6 py-8">
+
+        <!-- TAB 1: KONCEPCJA & ENTEZA (PRESERVED) -->
+        <section id="tab-koncepcja" class="block animate-fade-in space-y-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold text-dark mb-6 flex items-center gap-3">
+                    <span class="w-10 h-10 bg-medical-100 text-medical-700 rounded-lg flex items-center justify-center font-bold text-lg">01</span>
+                    Biomimetyka Chrząstki Włóknistej
+                </h2>
+                
+                <div class="grid lg:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-medical-800 border-l-4 border-medical-500 pl-4 uppercase tracking-tight mb-4">Wyzwanie Regeneracyjne Entezy</h3>
+                            <p class="text-slate-600 leading-relaxed text-justify text-sm mb-6">
+                                Enteza to wysokospecjalistyczny interfejs, w którym elastyczne ścięgno zakotwicza się w sztywnej kości. Kluczowym elementem jest tutaj <strong>chrząstka włóknista (fibrocartilage)</strong>, która w warunkach fizjologicznych tworzy płynny gradient właściwości mechanicznych. Brak odtworzenia tego gradientu po rekonstrukcji ACL prowadzi do powstania blizny włóknistej, co jest główną przyczyną niepowodzeń klinicznych.
+                            </p>
+                            
+                            <div class="bg-slate-50 p-6 rounded-xl space-y-4 border border-slate-200">
+                                <h4 class="font-bold text-dark text-xs uppercase tracking-widest border-b border-slate-200 pb-2">Anatomia Gradientowa Entezy:</h4>
+                                <div class="space-y-4">
+                                    <div class="relative pl-4 border-l-2 border-medical-300">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">1. Strefa Ścięgnowa (Tendon)</div>
+                                        <p class="text-xs text-slate-500 mb-2">Uporządkowane włókna o wysokiej odporności na rozciąganie.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag">Col1a1</span><span class="protein-tag">Col1a2</span><span class="protein-tag">Col3a1</span><span class="protein-tag">Fmod</span><span class="protein-tag">Pi16</span><span class="protein-tag">Tnmd</span><span class="protein-tag">Comp</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-medical-500">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">2. Chrząstka Włóknista Niezmineralizowana</div>
+                                        <p class="text-xs text-slate-500 mb-2">Strefa tłumienia naprężeń. Chondrocyty ułożone w kolumnach.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag text-medical-700 bg-medical-50">Col2a1</span><span class="protein-tag text-medical-700 bg-medical-50">Col9a1-3</span><span class="protein-tag">Scx</span><span class="protein-tag">Sox9</span><span class="protein-tag">Acan</span><span class="protein-tag">Dcn</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-medical-700">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">3. Chrząstka Włóknista Zmineralizowana</div>
+                                        <p class="text-xs text-slate-500 mb-2">Zdefiniowana granica mineralizacji (Tidemark). Kotwiczenie.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag text-medical-800 bg-medical-100">Col10a1</span><span class="protein-tag text-medical-800 bg-medical-100">Col11a2</span><span class="protein-tag">Bmp4</span><span class="protein-tag">Alp</span><span class="protein-tag">Phospho1</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-dark">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">4. Tkanka Kostna (Bone)</div>
+                                        <p class="text-xs text-slate-500 mb-2">Dojrzały minerał CaP w strukturze beleczkowatej.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag">Runx2</span><span class="protein-tag">Sp7 (Osterix)</span><span class="protein-tag">Bglap (Ocn)</span><span class="protein-tag">Ibsp (Bsp)</span><span class="protein-tag">Smad1/5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <h3 class="text-xl font-bold text-medical-800 border-l-4 border-medical-500 pl-4 uppercase tracking-tight mb-4">Stabilizacja HIF-1&alpha; & Rola Krzemu</h3>
+                        <p class="text-slate-600 leading-relaxed text-justify text-sm">
+                            Nasza strategia opiera się na fakcie, że enteza jest naturalną <strong>niszą hipoksyjną</strong> (<10% O₂). Przetrwanie progenitorów <em>Scleraxis (Scx)</em> zależy od czynnika <strong>HIF-1&alpha;</strong>.
+                        </p>
+                        <div class="space-y-6">
+                            <div class="p-6 bg-medical-50 rounded-xl border border-medical-100 relative overflow-hidden">
+                                <span class="block font-bold text-medical-900 text-sm uppercase mb-2">Sygnalizacja Krzemianowa (Si⁴⁺):</span>
+                                <p class="text-sm text-medical-800 leading-relaxed mb-4">
+                                    Inkorporacja krzemu do sieci HAp promuje mineralizację poprzez naśladowanie stanu hipoksji (*hypoxia-mimetic*), aktywując geny adaptacyjne nawet przy dostępie tlenu:
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Hilpda</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Igfbp9 (Nov)</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Slc40a1</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Eno1</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Pdk1</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-6 bg-dark rounded-xl border border-slate-800 text-white">
+                                <span class="block font-bold text-medical-400 text-xs uppercase mb-2 tracking-widest">Wnioski Badawcze:</span>
+                                <p class="text-sm text-slate-300 italic font-light leading-relaxed">
+                                    "Brak HIF-1&alpha; w komórkach linii Scx prowadzi do masowej apoptozy wywołanej uszkodzeniami DNA, całkowitej dezorganizacji włókien kolagenowych i braku formowania strefy chrząstki włóknistej zmineralizowanej. Nasze powłoki Si-HAp są 'programatorami' interfejsu, wymuszającymi stabilizację tego szlaku."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: KRYSTALOGRAFIA (DoE MATRIX) -->
+        <section id="tab-krystalografia" class="hidden animate-fade-in space-y-8">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <h2 class="text-3xl font-bold text-dark mb-2 uppercase">Plan Eksperymentu (DoE) 2x2</h2>
+                <p class="text-slate-500 text-sm">Analiza efektów głównych i synergicznych między domieszkowaniem Si a inkorporacją CO<sub>2</sub>.</p>
+            </div>
+            <div class="grid lg:grid-cols-12 gap-8 text-left">
+                <div class="lg:col-span-5 grid grid-cols-2 gap-3 h-fit">
+                    <div id="card-s1" onclick="selectVariant('s1')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-300 mb-1">S1</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">sHAp (Baza)</div>
+                    </div>
+                    <div id="card-s2" onclick="selectVariant('s2')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-400 mb-1">S2</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">Si-HAp</div>
+                    </div>
+                    <div id="card-s3" onclick="selectVariant('s3')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-500 mb-1">S3</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">C-HAp</div>
+                    </div>
+                    <div id="card-s4" onclick="selectVariant('s4')" class="doe-card active bg-white p-6 rounded-xl text-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-medical-500 text-white text-[9px] px-2 py-1 font-bold">TARGET</div>
+                        <div class="text-3xl font-bold text-medical-900 mb-1">S4</div>
+                        <div class="text-[10px] font-bold text-medical-700 uppercase tracking-widest">Si-C-HAp</div>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm min-h-[350px] flex flex-col justify-center">
+                    <div id="variant-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PROCES, KALKULATOR, PROTOKÓŁ (USER FAVORITE ENHANCED) -->
+        <section id="tab-proces" class="hidden animate-fade-in space-y-8">
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Multi-Model Calculator -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-medical-400 to-medical-700"></div>
+                    <h3 class="text-xl font-bold text-dark mb-4">⚖️ Kalkulator Stechiometryczny DoE</h3>
+                    <p class="text-slate-500 text-sm mb-6">Obliczenia naważek analitycznych przy stałym stosunku kationowo-anionowym Ca/(P+Si) = 1.667.</p>
+
+                    <!-- Interactive Model Selector -->
+                    <div class="flex gap-2 mb-6 bg-slate-100 p-1.5 rounded-xl">
+                        <button id="calc-btn-S1" onclick="setCalcModel('S1')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S1</button>
+                        <button id="calc-btn-S2" onclick="setCalcModel('S2')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S2</button>
+                        <button id="calc-btn-S3" onclick="setCalcModel('S3')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S3</button>
+                        <button id="calc-btn-S4" onclick="setCalcModel('S4')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all bg-medical-500 text-white border-medical-500 shadow-sm">S4</button>
+                    </div>
+
+                    <!-- Open System Warning -->
+                    <div id="calc-warning" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg text-xs text-yellow-800">
+                        <span class="font-bold">UKŁAD OTWARTY:</span> Jony CO₃²⁻ absorbują się z atmosfery. Naważki prekursorów wprowadzanych do reaktora wyliczane są wg stechiometrii bazy (S1/S2).
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Docelowa masa produktu (g)</label>
+                            <input type="number" id="calc-mass" value="10" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-3 px-4 text-xl font-mono focus:border-medical-500 outline-none" oninput="calculateMasses()">
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 font-mono text-sm">
+                            <div class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100">
+                                <span class="font-bold text-medical-900">Ca(NO₃)₂·4H₂O</span>
+                                <span id="out-ca" class="text-xl font-bold text-medical-800">23.65 g</span>
+                            </div>
+                            <div class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100">
+                                <span class="font-bold text-medical-900">(NH₄)₂HPO₄</span>
+                                <span id="out-p" class="text-xl font-bold text-medical-800">7.54 g</span>
+                            </div>
+                            <div id="out-si-container" class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100 transition-all">
+                                <span class="font-bold text-medical-900">TEOS (ρ=0.933)</span>
+                                <span id="out-si" class="text-xl font-bold text-medical-800">0.67 mL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- pH Thermodynamics -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-dark mb-4">🧪 Termodynamika pH</h3>
+                        <p class="text-slate-500 text-sm mb-4">Blokada 'pułapkowania kinetycznego' grup HPO₄²⁻ to wymóg czystości fazowej.</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-red-600 w-12">< 9</span>
+                                <div class="text-xs text-red-900 font-medium uppercase">ZAGROŻENIE: Bruszyt. Fazy kwaśne.</div>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-yellow-600 w-12">9-10</span>
+                                <div class="text-xs text-yellow-900 font-medium uppercase">ZAGROŻENIE: CDHA. Defekty HPO₄²⁻.</div>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-medical-500 bg-medical-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-medical-600 w-12">10.8</span>
+                                <div class="text-xs text-medical-900 font-bold uppercase underline decoration-2">SAFE ZONE: Deprotonacja do PO₄³⁻.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: FULL REPRODUCIBILITY DATA -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-dark mb-4">📝 Protokół Syntezy (Reprodukowalność)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                                        <th class="p-2 font-bold">Parametr Reżimu</th>
+                                        <th class="p-2 font-bold">Wartość</th>
+                                        <th class="p-2 font-bold">Uzasadnienie</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="p-2 font-semibold">Stężenie jonów Ca²⁺</td>
+                                        <td class="p-2 font-mono text-medical-700">0.05 mol</td>
+                                        <td class="p-2 text-xs">Standardowa pula kationowa.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Objętość reaktora</td>
+                                        <td class="p-2 font-mono text-medical-700">500 mL</td>
+                                        <td class="p-2 text-xs">Zoptymalizowana hydrodynamika (kolba trójszyjna).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Mieszanie (RPM)</td>
+                                        <td class="p-2 font-mono text-medical-700">500 obr/min</td>
+                                        <td class="p-2 text-xs">Minimalizacja koagulacji ortokinetycznej (z badań barwnikiem).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Dozowanie (AR)</td>
+                                        <td class="p-2 font-mono text-medical-700">1.0 mL/min</td>
+                                        <td class="p-2 text-xs">Unikanie spadku przesycenia i tworzenia "blobs". Promuje nanorods.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Czas dojrzewania</td>
+                                        <td class="p-2 font-mono text-medical-700">24 h</td>
+                                        <td class="p-2 text-xs">Pełna krystalizacja i starzenie osadu (aging).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Temperatura</td>
+                                        <td class="p-2 font-mono text-medical-700">~22°C (Pokojowa)</td>
+                                        <td class="p-2 text-xs">Hamowanie rozrostu termodynamicznego (utrzymanie rzędu 40-70 nm).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Sterylizacja</td>
+                                        <td class="p-2 font-mono text-medical-700">Promienie &gamma;</td>
+                                        <td class="p-2 text-xs">Ochrona nanostruktury przed degradacją termiczną z autoklawu.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kinetic Analysis Chart -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="max-w-3xl mx-auto text-center mb-6">
+                    <h3 class="text-2xl font-bold text-dark mb-3">Kinetyka Dozowania (AR) vs Mikroarchitektura</h3>
+                    <p class="text-slate-600 text-sm">
+                        Przy zoptymalizowanym AR = 1.0 mL/min osiągamy optimum nanostrukturalne, co skutkuje redukcją średnicy aglomeratów i zwiększeniem reaktywnej powierzchni powłoki (BET).
+                    </p>
+                </div>
+                <div class="chart-container border border-slate-100 rounded-xl overflow-hidden bg-slate-50">
+                    <canvas id="arChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: ATLAS FOSFORANÓW (MEGA EXPANDED) -->
+        <section id="tab-atlas" class="hidden animate-fade-in space-y-10">
+            <div class="bg-dark text-white p-12 rounded-2xl shadow-md relative overflow-hidden text-center">
+                <h2 class="text-3xl font-bold mb-2 relative z-10 uppercase tracking-widest">Atlas Rodziny Fosforanów (CaP)</h2>
+                <p class="text-medical-200 text-sm relative z-10">Od faz kwaśnych po zaawansowane podstawienia jonowe.</p>
+            </div>
+
+            <div class="phase-grid">
+                <!-- ACP -->
+                <div class="phase-card border-t-4 border-slate-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">ACP</h4>
+                        <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.2-1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Amorphous Calcium Phosphate</p>
+                    <p class="text-xs text-slate-600 mb-2">Pierwsza faza metastabilna. Brak dalekosiężnego uporządkowania. Rezerwuar jonów o najwyższej rozpuszczalności.</p>
+                </div>
+
+                <!-- DCPA -->
+                <div class="phase-card border-t-4 border-red-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">DCPA (Monetyt)</h4>
+                        <span class="text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">CaHPO₄ | System: Trójskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Bezwodna faza kwaśna. Powstaje przy pH < 6.0 w temp. >100°C. Kluczowy komponent cementów kostnych.</p>
+                </div>
+
+                <!-- DCPD -->
+                <div class="phase-card border-t-4 border-red-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">DCPD (Bruszyt)</h4>
+                        <span class="text-[9px] bg-red-100 text-red-700 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">CaHPO₄·2H₂O | System: Jednoskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Dwuwodna faza kwaśna o morfologii płytkowej. Bardzo wysoka rozpuszczalność.</p>
+                </div>
+
+                <!-- OCP -->
+                <div class="phase-card border-t-4 border-yellow-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">OCP</h4>
+                        <span class="text-[9px] bg-yellow-50 text-yellow-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.33</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₈(HPO₄)₂(PO₄)₄·5H₂O</p>
+                    <p class="text-xs text-slate-600 mb-2">Prekursor topotaktyczny hydroksyapatytu. Unikalna struktura warstwowa (Apatite | Hydrated layer).</p>
+                </div>
+
+                <!-- Alpha-TCP -->
+                <div class="phase-card border-t-4 border-orange-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">&alpha;-TCP</h4>
+                        <span class="text-[9px] bg-orange-100 text-orange-800 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₃(PO₄)₂ | System: Jednoskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Wysokotemperaturowy polimorf (>1125°C). Ekstremalnie reaktywny w wodzie — cement kostny.</p>
+                </div>
+
+                <!-- Beta-TCP -->
+                <div class="phase-card border-t-4 border-orange-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">&beta;-TCP</h4>
+                        <span class="text-[9px] bg-orange-50 text-orange-700 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₃(PO₄)₂ | System: Romboedryczny</p>
+                    <p class="text-xs text-slate-600 mb-2">Najpopularniejszy resorbowalny biomateriał ceramiczny. Stabilny termodynamicznie do 1125°C.</p>
+                </div>
+
+                <!-- TTCP -->
+                <div class="phase-card border-t-4 border-purple-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">TTCP</h4>
+                        <span class="text-[9px] bg-purple-100 text-purple-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 2.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₄(PO₄)₂O | Hilgenstockit</p>
+                    <p class="text-xs text-slate-600 mb-2">Najbardziej zasadowy z fosforanów wapnia. Powstaje powyżej 1300°C. Wysoce bioaktywny.</p>
+                </div>
+
+                <!-- CDHA -->
+                <div class="phase-card border-t-4 border-medical-500 bg-medical-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-medical-900 uppercase">CDHA</h4>
+                        <span class="text-[9px] bg-medical-200 text-medical-800 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5-1.67</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Calcium Deficient HA</p>
+                    <p class="text-xs text-slate-700 mb-2 font-semibold">Nasz cel w syntezie mokrej. Najbliższy odpowiednik mineralnej kości. Zawiera wakansje Ca²⁺.</p>
+                </div>
+
+                <!-- Ionic Substitution Table -->
+                <div class="phase-card bg-dark text-white border-none shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-lg text-medical-400 mb-4 uppercase">Matryca Podstawień</h4>
+                        <div class="space-y-2 text-[11px]">
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Si</strong> <span>HIF-1&alpha; / Osteogeneza</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Sr</strong> <span>Balans Osteo Blast/Klast</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Mg</strong> <span>Inhibicja wzrostu (BET+)</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">CO₃</strong> <span>Typ B: Reaktywność</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: BIBLIOGRAFIA & METODYKA -->
+        <section id="tab-badania" class="hidden animate-fade-in space-y-10">
+            <div class="bg-dark text-white p-10 rounded-2xl shadow-md">
+                <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">🚀 Architektura Procesu</h3>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">01. SYNTEZA</h4>
+                        <p class="text-[11px] text-slate-400">DoE 2x2. pH (10.8), AR (1.0). Wirowanie 6k RPM.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">02. STRUKTURA</h4>
+                        <p class="text-[11px] text-slate-400">XRD (Scherrer), FTIR, EDS (Mapowanie Ca/P/Si), BET.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">03. BIOLOGIA</h4>
+                        <p class="text-[11px] text-slate-400">Testy MTT, Scratch test (migracja fibroblastów), qPCR.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">04. WALIDACJA</h4>
+                        <p class="text-[11px] text-slate-400">Korelacja defektów z HIF-1&alpha;. Wytyczne dla powłok Arthrex.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xl font-bold text-dark mb-6">📚 Bibliografia & Wybrane Prace</h3>
+                <div class="grid md:grid-cols-2 gap-6 text-[11px] text-slate-500 font-serif">
+                    <p>1. <strong>Gibson IR</strong> et al. SSNMR confirms silicate ion substitution in the apatitic structure of 0.8wt% Si hydroxyapatite. 2023.</p>
+                    <p>2. <strong>Steltzer SS</strong> et al. The developing tendon and enthesis are hypoxic and rely on hypoxia-inducible factor 1a (Hif1a). bioRxiv 2025.</p>
+                    <p>3. <strong>Hing KA</strong> et al. Effect of silicon level on rate, quality and progression of bone healing. Biomaterials 2006.</p>
+                    <p>4. <strong>Szurkowska K, Kolmas J.</strong> Hydroxyapatites enriched in silicon – bioceramic materials. 2017.</p>
+                    <p>5. <strong>Al-Qasas NS, Rohani S.</strong> Synthesis of Pure HAp and Effect of Synthesis Conditions on Crystallinity. 2005.</p>
+                    <p>6. <strong>Yu H</strong> et al. Microstructure and in vitro bioactivity of silicon-substituted hydroxyapatite. Silicon 2017.</p>
+                    <p class="col-span-2 text-center text-slate-400 mt-4 border-t border-slate-100 pt-4 uppercase tracking-widest font-bold">Pełna dokumentacja (50+ pozycji) dostępna w archiwum projektu.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-slate-500 py-10 text-center text-xs mt-auto border-t border-slate-800">
+        <p>PRECISION • STRUCTURE • BIOACTIVITY • ACL RECONSTRUCTION &copy; 2026</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        function switchTab(tabId) {
+            const tabs = ['koncepcja', 'krystalografia', 'proces', 'atlas', 'badania'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('tab-' + t).classList.remove('block');
+                document.getElementById('nav-' + t).classList.remove('active');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.add('block');
+            document.getElementById('nav-' + tabId).classList.add('active');
+            
+            // Critical fix to render chart ONLY after the tab is visible
+            if(tabId === 'proces' && !window.chartRendered) { 
+                // small timeout to ensure display:block has taken effect
+                setTimeout(() => {
+                    renderChart(); 
+                    window.chartRendered = true; 
+                }, 50);
+            }
+        }
+
+        const doeData = {
+            s1: { title: 'S1: sHAp (Referencja)', formula: 'Ca₁₀(PO₄)₆(OH)₂', desc: 'Hydroksyapatyt stechiometryczny. Punkt odniesienia do oceny modyfikacji chemicznych i fizycznych.' },
+            s2: { title: 'S2: Si-HAp (Gibson)', formula: 'Ca₁₀(PO₄)₅.₇(SiO₄)₀.₃(OH)₁.₇', desc: 'Izomorficzne podstawienie krzemianowe. Nadmiar ładunku ujemnego wymusza powstanie wakansów w podsieci OH⁻.' },
+            s3: { title: 'S3: C-HAp (Układ Otwarty)', formula: 'Ca₁₀₋y(PO₄)₆₋z(CO₃)z(OH)₂₋y', desc: 'Węglanowy HA. Jony węglanowe generują napięcia sieciowe i wymuszają powstanie wakansów kationowych Ca²⁺.' },
+            s4: { title: 'S4: Si-C-HAp (Docelowy)', formula: 'Ca₁₀₋y(PO₄)₅.₇₋z(SiO₄)₀.₃(CO₃)z(OH)₁.₇₋y', desc: 'Docelowy nanokompozyt. Synergia Si (HIF-1&alpha;) i CO₃ (reaktywność). Najbliższy odpowiednik biogennego minerału.' }
+        };
+
+        function selectVariant(id) {
+            document.querySelectorAll('.doe-card').forEach(el => el.classList.remove('active', 'border-medical-500'));
+            document.getElementById('card-' + id).classList.add('active', 'border-medical-500');
+            const data = doeData[id];
+            document.getElementById('variant-content').innerHTML = `
+                <h3 class="text-2xl font-bold text-dark mb-6">${data.title}</h3>
+                <div class="formula bg-dark text-medical-400 p-6 rounded-xl text-xl text-center mb-6 shadow-inner border border-slate-700 font-mono">${data.formula}</div>
+                <p class="text-slate-600 leading-relaxed border-l-[6px] border-medical-500 pl-4 italic text-sm">${data.desc}</p>
+            `;
+        }
+
+        let currentCalcModel = 'S4';
+
+        function setCalcModel(model) {
+            currentCalcModel = model;
+            document.querySelectorAll('.calc-model-btn').forEach(btn => {
+                btn.classList.remove('bg-medical-500', 'text-white', 'border-medical-500', 'shadow-sm');
+                btn.classList.add('text-slate-500', 'border-transparent', 'hover:bg-white');
+            });
+            const activeBtn = document.getElementById('calc-btn-' + model);
+            activeBtn.classList.remove('text-slate-500', 'border-transparent', 'hover:bg-white');
+            activeBtn.classList.add('bg-medical-500', 'text-white', 'border-medical-500', 'shadow-sm');
+
+            const warningEl = document.getElementById('calc-warning');
+            if (model === 'S3' || model === 'S4') {
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
+            }
+            calculateMasses();
+        }
+
+        function calculateMasses() {
+            const m = parseFloat(document.getElementById('calc-mass').value) || 10;
+            let ratioCa, ratioP, ratioSi;
+
+            if (currentCalcModel === 'S1' || currentCalcModel === 'S3') {
+                ratioCa = 2.3506;
+                ratioP = 0.7887;
+                ratioSi = 0;
+                document.getElementById('out-si-container').classList.add('opacity-40');
+            } else {
+                ratioCa = 2.3646;
+                ratioP = 0.7537;
+                ratioSi = 0.06707;
+                document.getElementById('out-si-container').classList.remove('opacity-40');
+            }
+
+            document.getElementById('out-ca').innerText = (m * ratioCa).toFixed(2) + ' g';
+            document.getElementById('out-p').innerText = (m * ratioP).toFixed(2) + ' g';
+            document.getElementById('out-si').innerText = (m * ratioSi).toFixed(2) + ' mL';
+        }
+
+        function renderChart() {
+            new Chart(document.getElementById('arChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['0.6', '0.8', '1.0 (NASZ)', '1.3', '3.0', '4.0'],
+                    datasets: [{ 
+                        label: 'Średnica Aglomeratów (μm)', 
+                        data: [32, 28.5, 22.0, 16.3, 18.2, 25.6], 
+                        borderColor: '#14b8a6', 
+                        backgroundColor: 'rgba(20, 184, 166, 0.15)', 
+                        fill: true, 
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, title: { display: true, text: 'Średnica (μm)', font: { weight: 'bold' } } }, 
+                        x: { grid: { display: false }, title: { display: true, text: 'Addition Rate (mL/min)', font: { weight: 'bold' } } } 
+                    }
+                }
+            });
+        }
+
+        // Initialize state (Explicitly load tab 1 first)
+        calculateMasses();
+        selectVariant('s4');
+        window.chartRendered = false; // Will trigger when clicking Tab 3
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inżynieria Strukturalna Si-HAp | Raport Analityczny</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            500: '#14b8a6', 
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        dark: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; scroll-behavior: smooth; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 850px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 380px;
+            max-height: 400px;
+            padding: 1rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
+
+        .tab-btn { transition: all 0.2s ease; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { border-bottom-color: #14b8a6; color: #134e4a; font-weight: 700; background-color: #f0fdfa; }
+        
+        .doe-card { transition: all 0.2s ease; cursor: pointer; border: 1px solid #e2e8f0; }
+        .doe-card:hover { transform: translateY(-2px); border-color: #14b8a6; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .doe-card.active { border: 2px solid #14b8a6; background-color: #f0fdfa; }
+
+        .formula { font-family: 'Courier New', Courier, monospace; font-weight: 700; }
+        
+        .phase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .phase-card { background: white; border-radius: 0.75rem; padding: 1.25rem; border: 1px solid #e2e8f0; transition: all 0.2s; position: relative; }
+        .phase-card:hover { border-color: #14b8a6; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); z-index: 10; }
+        
+        .protein-tag { display: inline-block; padding: 0.1rem 0.4rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 0.25rem; font-size: 0.65rem; font-weight: 700; color: #475569; margin: 0.1rem; text-transform: uppercase; }
+
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-slate-50">
+
+    <!-- Chosen Palette: Medical Teal (#14b8a6) & Deep Slate (#1e293b). Normalized proportions for an academic, analytical aesthetic. -->
+    
+    <!-- Application Structure Plan: 
+         - Tab 1: Deep Dive into Concept & Enthesis Anatomy (Preserved).
+         - Tab 2: DoE Matrix with focus on crystallographic shifts.
+         - Tab 3: Process Engineering. INCLUDES THE RESTORED CALCULATOR, CHART, AND NEW REPRODUCIBILITY TABLE.
+         - Tab 4: Massive Expanded Atlas of Calcium Phosphates (CaP).
+         - Tab 5: Full Bibliography integration.
+         - Logic: Font sizes reduced (text-6xl -> text-4xl), paddings normalized (p-16 -> p-8) for a professional, non-overwhelming UI.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         - Goal: Provide full reproducibility data. Method: New comprehensive HTML table in Tab 3 matching the user's exact parameters.
+         - Goal: Ensure Chart.js renders. Method: Fixed JS init logic to reliably trigger on tab switch.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
+
+    <!-- Header -->
+    <header class="bg-dark text-white pt-10 pb-8 px-6 shadow-md relative z-10">
+        <div class="max-w-6xl mx-auto relative">
+            <div class="flex items-center gap-3 mb-4 text-medical-500">
+                <span class="text-3xl">🔬</span>
+                <span class="font-bold tracking-widest text-xs uppercase">Scientific Research Dissertation v5.0</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold leading-tight mb-4 text-slate-50">
+                Inżynieria Strukturalna Si-HAp
+            </h1>
+            <p class="text-slate-400 max-w-4xl text-base leading-relaxed font-light">
+                Bioaktywne powłoki biomimetyczne dla systemów <span class="text-medical-500 font-semibold">Arthrex TightRope® II & ABS</span>. Zaawansowana optymalizacja regeneracji <em>enthesis</em> poprzez inżynierię defektów sieciowych.
+            </p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-6 flex overflow-x-auto no-scrollbar">
+            <!-- Set default active tab to Koncepcja -->
+            <button onclick="switchTab('koncepcja')" id="nav-koncepcja" class="tab-btn active px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">💡 Koncepcja & Enteza</button>
+            <button onclick="switchTab('krystalografia')" id="nav-krystalografia" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">🔬 DoE & Sieć</button>
+            <button onclick="switchTab('proces')" id="nav-proces" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">⚙️ Proces & Kinetyka</button>
+            <button onclick="switchTab('atlas')" id="nav-atlas" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">🧪 Atlas Fosforanów</button>
+            <button onclick="switchTab('badania')" id="nav-badania" class="tab-btn px-6 py-4 text-sm font-semibold text-slate-500 hover:text-medical-600 whitespace-nowrap uppercase tracking-wider">📊 Metodyka</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-6xl mx-auto w-full px-6 py-8">
+
+        <!-- TAB 1: KONCEPCJA & ENTEZA (PRESERVED) -->
+        <section id="tab-koncepcja" class="block animate-fade-in space-y-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold text-dark mb-6 flex items-center gap-3">
+                    <span class="w-10 h-10 bg-medical-100 text-medical-700 rounded-lg flex items-center justify-center font-bold text-lg">01</span>
+                    Biomimetyka Chrząstki Włóknistej
+                </h2>
+                
+                <div class="grid lg:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-medical-800 border-l-4 border-medical-500 pl-4 uppercase tracking-tight mb-4">Wyzwanie Regeneracyjne Entezy</h3>
+                            <p class="text-slate-600 leading-relaxed text-justify text-sm mb-6">
+                                Enteza to wysokospecjalistyczny interfejs, w którym elastyczne ścięgno zakotwicza się w sztywnej kości. Kluczowym elementem jest tutaj <strong>chrząstka włóknista (fibrocartilage)</strong>, która w warunkach fizjologicznych tworzy płynny gradient właściwości mechanicznych. Brak odtworzenia tego gradientu po rekonstrukcji ACL prowadzi do powstania blizny włóknistej, co jest główną przyczyną niepowodzeń klinicznych.
+                            </p>
+                            
+                            <div class="bg-slate-50 p-6 rounded-xl space-y-4 border border-slate-200">
+                                <h4 class="font-bold text-dark text-xs uppercase tracking-widest border-b border-slate-200 pb-2">Anatomia Gradientowa Entezy:</h4>
+                                <div class="space-y-4">
+                                    <div class="relative pl-4 border-l-2 border-medical-300">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">1. Strefa Ścięgnowa (Tendon)</div>
+                                        <p class="text-xs text-slate-500 mb-2">Uporządkowane włókna o wysokiej odporności na rozciąganie.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag">Col1a1</span><span class="protein-tag">Col1a2</span><span class="protein-tag">Col3a1</span><span class="protein-tag">Fmod</span><span class="protein-tag">Pi16</span><span class="protein-tag">Tnmd</span><span class="protein-tag">Comp</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-medical-500">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">2. Chrząstka Włóknista Niezmineralizowana</div>
+                                        <p class="text-xs text-slate-500 mb-2">Strefa tłumienia naprężeń. Chondrocyty ułożone w kolumnach.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag text-medical-700 bg-medical-50">Col2a1</span><span class="protein-tag text-medical-700 bg-medical-50">Col9a1-3</span><span class="protein-tag">Scx</span><span class="protein-tag">Sox9</span><span class="protein-tag">Acan</span><span class="protein-tag">Dcn</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-medical-700">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">3. Chrząstka Włóknista Zmineralizowana</div>
+                                        <p class="text-xs text-slate-500 mb-2">Zdefiniowana granica mineralizacji (Tidemark). Kotwiczenie.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag text-medical-800 bg-medical-100">Col10a1</span><span class="protein-tag text-medical-800 bg-medical-100">Col11a2</span><span class="protein-tag">Bmp4</span><span class="protein-tag">Alp</span><span class="protein-tag">Phospho1</span>
+                                        </div>
+                                    </div>
+                                    <div class="relative pl-4 border-l-2 border-dark">
+                                        <div class="text-sm font-bold text-dark uppercase mb-1">4. Tkanka Kostna (Bone)</div>
+                                        <p class="text-xs text-slate-500 mb-2">Dojrzały minerał CaP w strukturze beleczkowatej.</p>
+                                        <div class="flex flex-wrap gap-1">
+                                            <span class="protein-tag">Runx2</span><span class="protein-tag">Sp7 (Osterix)</span><span class="protein-tag">Bglap (Ocn)</span><span class="protein-tag">Ibsp (Bsp)</span><span class="protein-tag">Smad1/5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <h3 class="text-xl font-bold text-medical-800 border-l-4 border-medical-500 pl-4 uppercase tracking-tight mb-4">Stabilizacja HIF-1&alpha; & Rola Krzemu</h3>
+                        <p class="text-slate-600 leading-relaxed text-justify text-sm">
+                            Nasza strategia opiera się na fakcie, że enteza jest naturalną <strong>niszą hipoksyjną</strong> (<10% O₂). Przetrwanie progenitorów <em>Scleraxis (Scx)</em> zależy od czynnika <strong>HIF-1&alpha;</strong>.
+                        </p>
+                        <div class="space-y-6">
+                            <div class="p-6 bg-medical-50 rounded-xl border border-medical-100 relative overflow-hidden">
+                                <span class="block font-bold text-medical-900 text-sm uppercase mb-2">Sygnalizacja Krzemianowa (Si⁴⁺):</span>
+                                <p class="text-sm text-medical-800 leading-relaxed mb-4">
+                                    Inkorporacja krzemu do sieci HAp promuje mineralizację poprzez naśladowanie stanu hipoksji (*hypoxia-mimetic*), aktywując geny adaptacyjne nawet przy dostępie tlenu:
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Hilpda</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Igfbp9 (Nov)</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Slc40a1</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Eno1</span>
+                                    <span class="protein-tag border-medical-200 text-medical-700 bg-white">Pdk1</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-6 bg-dark rounded-xl border border-slate-800 text-white">
+                                <span class="block font-bold text-medical-400 text-xs uppercase mb-2 tracking-widest">Wnioski Badawcze:</span>
+                                <p class="text-sm text-slate-300 italic font-light leading-relaxed">
+                                    "Brak HIF-1&alpha; w komórkach linii Scx prowadzi do masowej apoptozy wywołanej uszkodzeniami DNA, całkowitej dezorganizacji włókien kolagenowych i braku formowania strefy chrząstki włóknistej zmineralizowanej. Nasze powłoki Si-HAp są 'programatorami' interfejsu, wymuszającymi stabilizację tego szlaku."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: KRYSTALOGRAFIA (DoE MATRIX) -->
+        <section id="tab-krystalografia" class="hidden animate-fade-in space-y-8">
+            <div class="text-center max-w-2xl mx-auto mb-8">
+                <h2 class="text-3xl font-bold text-dark mb-2 uppercase">Plan Eksperymentu (DoE) 2x2</h2>
+                <p class="text-slate-500 text-sm">Analiza efektów głównych i synergicznych między domieszkowaniem Si a inkorporacją CO<sub>2</sub>.</p>
+            </div>
+            <div class="grid lg:grid-cols-12 gap-8 text-left">
+                <div class="lg:col-span-5 grid grid-cols-2 gap-3 h-fit">
+                    <div id="card-s1" onclick="selectVariant('s1')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-300 mb-1">S1</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">sHAp (Baza)</div>
+                    </div>
+                    <div id="card-s2" onclick="selectVariant('s2')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-400 mb-1">S2</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">Si-HAp</div>
+                    </div>
+                    <div id="card-s3" onclick="selectVariant('s3')" class="doe-card bg-white p-6 rounded-xl text-center">
+                        <div class="text-3xl font-bold text-slate-500 mb-1">S3</div>
+                        <div class="text-[10px] font-bold text-medical-600 uppercase tracking-widest">C-HAp</div>
+                    </div>
+                    <div id="card-s4" onclick="selectVariant('s4')" class="doe-card active bg-white p-6 rounded-xl text-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-medical-500 text-white text-[9px] px-2 py-1 font-bold">TARGET</div>
+                        <div class="text-3xl font-bold text-medical-900 mb-1">S4</div>
+                        <div class="text-[10px] font-bold text-medical-700 uppercase tracking-widest">Si-C-HAp</div>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm min-h-[350px] flex flex-col justify-center">
+                    <div id="variant-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PROCES, KALKULATOR, PROTOKÓŁ (USER FAVORITE ENHANCED) -->
+        <section id="tab-proces" class="hidden animate-fade-in space-y-8">
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Multi-Model Calculator -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-medical-400 to-medical-700"></div>
+                    <h3 class="text-xl font-bold text-dark mb-4">⚖️ Kalkulator Stechiometryczny DoE</h3>
+                    <p class="text-slate-500 text-sm mb-6">Obliczenia naważek analitycznych przy stałym stosunku kationowo-anionowym Ca/(P+Si) = 1.667.</p>
+
+                    <!-- Interactive Model Selector -->
+                    <div class="flex gap-2 mb-6 bg-slate-100 p-1.5 rounded-xl">
+                        <button id="calc-btn-S1" onclick="setCalcModel('S1')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S1</button>
+                        <button id="calc-btn-S2" onclick="setCalcModel('S2')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S2</button>
+                        <button id="calc-btn-S3" onclick="setCalcModel('S3')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all text-slate-500 border-transparent hover:bg-white">S3</button>
+                        <button id="calc-btn-S4" onclick="setCalcModel('S4')" class="calc-model-btn flex-1 py-2 rounded-lg border font-bold text-xs uppercase transition-all bg-medical-500 text-white border-medical-500 shadow-sm">S4</button>
+                    </div>
+
+                    <!-- Open System Warning -->
+                    <div id="calc-warning" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg text-xs text-yellow-800">
+                        <span class="font-bold">UKŁAD OTWARTY:</span> Jony CO₃²⁻ absorbują się z atmosfery. Naważki prekursorów wprowadzanych do reaktora wyliczane są wg stechiometrii bazy (S1/S2).
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Docelowa masa produktu (g)</label>
+                            <input type="number" id="calc-mass" value="10" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-3 px-4 text-xl font-mono focus:border-medical-500 outline-none" oninput="calculateMasses()">
+                        </div>
+                        <div class="grid grid-cols-1 gap-3 font-mono text-sm">
+                            <div class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100">
+                                <span class="font-bold text-medical-900">Ca(NO₃)₂·4H₂O</span>
+                                <span id="out-ca" class="text-xl font-bold text-medical-800">23.65 g</span>
+                            </div>
+                            <div class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100">
+                                <span class="font-bold text-medical-900">(NH₄)₂HPO₄</span>
+                                <span id="out-p" class="text-xl font-bold text-medical-800">7.54 g</span>
+                            </div>
+                            <div id="out-si-container" class="p-4 bg-medical-50 rounded-lg flex justify-between items-center border border-medical-100 transition-all">
+                                <span class="font-bold text-medical-900">TEOS (ρ=0.933)</span>
+                                <span id="out-si" class="text-xl font-bold text-medical-800">0.67 mL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- pH Thermodynamics -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-dark mb-4">🧪 Termodynamika pH</h3>
+                        <p class="text-slate-500 text-sm mb-4">Blokada 'pułapkowania kinetycznego' grup HPO₄²⁻ to wymóg czystości fazowej.</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-red-600 w-12">< 9</span>
+                                <div class="text-xs text-red-900 font-medium uppercase">ZAGROŻENIE: Bruszyt. Fazy kwaśne.</div>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-yellow-600 w-12">9-10</span>
+                                <div class="text-xs text-yellow-900 font-medium uppercase">ZAGROŻENIE: CDHA. Defekty HPO₄²⁻.</div>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 border-l-4 border-medical-500 bg-medical-50 rounded-r-lg">
+                                <span class="text-xl font-bold text-medical-600 w-12">10.8</span>
+                                <div class="text-xs text-medical-900 font-bold uppercase underline decoration-2">SAFE ZONE: Deprotonacja do PO₄³⁻.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: FULL REPRODUCIBILITY DATA -->
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-dark mb-4">📝 Protokół Syntezy (Reprodukowalność)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                                        <th class="p-2 font-bold">Parametr Reżimu</th>
+                                        <th class="p-2 font-bold">Wartość</th>
+                                        <th class="p-2 font-bold">Uzasadnienie</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="p-2 font-semibold">Stężenie jonów Ca²⁺</td>
+                                        <td class="p-2 font-mono text-medical-700">0.05 mol</td>
+                                        <td class="p-2 text-xs">Standardowa pula kationowa.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Objętość reaktora</td>
+                                        <td class="p-2 font-mono text-medical-700">500 mL</td>
+                                        <td class="p-2 text-xs">Zoptymalizowana hydrodynamika (kolba trójszyjna).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Mieszanie (RPM)</td>
+                                        <td class="p-2 font-mono text-medical-700">500 obr/min</td>
+                                        <td class="p-2 text-xs">Minimalizacja koagulacji ortokinetycznej (z badań barwnikiem).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Dozowanie (AR)</td>
+                                        <td class="p-2 font-mono text-medical-700">1.0 mL/min</td>
+                                        <td class="p-2 text-xs">Unikanie spadku przesycenia i tworzenia "blobs". Promuje nanorods.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Czas dojrzewania</td>
+                                        <td class="p-2 font-mono text-medical-700">24 h</td>
+                                        <td class="p-2 text-xs">Pełna krystalizacja i starzenie osadu (aging).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Temperatura</td>
+                                        <td class="p-2 font-mono text-medical-700">~22°C (Pokojowa)</td>
+                                        <td class="p-2 text-xs">Hamowanie rozrostu termodynamicznego (utrzymanie rzędu 40-70 nm).</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-semibold">Sterylizacja</td>
+                                        <td class="p-2 font-mono text-medical-700">Promienie &gamma;</td>
+                                        <td class="p-2 text-xs">Ochrona nanostruktury przed degradacją termiczną z autoklawu.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kinetic Analysis Chart -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="max-w-3xl mx-auto text-center mb-6">
+                    <h3 class="text-2xl font-bold text-dark mb-3">Kinetyka Dozowania (AR) vs Mikroarchitektura</h3>
+                    <p class="text-slate-600 text-sm">
+                        Przy zoptymalizowanym AR = 1.0 mL/min osiągamy optimum nanostrukturalne, co skutkuje redukcją średnicy aglomeratów i zwiększeniem reaktywnej powierzchni powłoki (BET).
+                    </p>
+                </div>
+                <div class="chart-container border border-slate-100 rounded-xl overflow-hidden bg-slate-50">
+                    <canvas id="arChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: ATLAS FOSFORANÓW (MEGA EXPANDED) -->
+        <section id="tab-atlas" class="hidden animate-fade-in space-y-10">
+            <div class="bg-dark text-white p-12 rounded-2xl shadow-md relative overflow-hidden text-center">
+                <h2 class="text-3xl font-bold mb-2 relative z-10 uppercase tracking-widest">Atlas Rodziny Fosforanów (CaP)</h2>
+                <p class="text-medical-200 text-sm relative z-10">Od faz kwaśnych po zaawansowane podstawienia jonowe.</p>
+            </div>
+
+            <div class="phase-grid">
+                <!-- ACP -->
+                <div class="phase-card border-t-4 border-slate-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">ACP</h4>
+                        <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.2-1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Amorphous Calcium Phosphate</p>
+                    <p class="text-xs text-slate-600 mb-2">Pierwsza faza metastabilna. Brak dalekosiężnego uporządkowania. Rezerwuar jonów o najwyższej rozpuszczalności.</p>
+                </div>
+
+                <!-- DCPA -->
+                <div class="phase-card border-t-4 border-red-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">DCPA (Monetyt)</h4>
+                        <span class="text-[9px] bg-red-100 text-red-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">CaHPO₄ | System: Trójskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Bezwodna faza kwaśna. Powstaje przy pH < 6.0 w temp. >100°C. Kluczowy komponent cementów kostnych.</p>
+                </div>
+
+                <!-- DCPD -->
+                <div class="phase-card border-t-4 border-red-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">DCPD (Bruszyt)</h4>
+                        <span class="text-[9px] bg-red-100 text-red-700 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">CaHPO₄·2H₂O | System: Jednoskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Dwuwodna faza kwaśna o morfologii płytkowej. Bardzo wysoka rozpuszczalność.</p>
+                </div>
+
+                <!-- OCP -->
+                <div class="phase-card border-t-4 border-yellow-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">OCP</h4>
+                        <span class="text-[9px] bg-yellow-50 text-yellow-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.33</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₈(HPO₄)₂(PO₄)₄·5H₂O</p>
+                    <p class="text-xs text-slate-600 mb-2">Prekursor topotaktyczny hydroksyapatytu. Unikalna struktura warstwowa (Apatite | Hydrated layer).</p>
+                </div>
+
+                <!-- Alpha-TCP -->
+                <div class="phase-card border-t-4 border-orange-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">&alpha;-TCP</h4>
+                        <span class="text-[9px] bg-orange-100 text-orange-800 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₃(PO₄)₂ | System: Jednoskośny</p>
+                    <p class="text-xs text-slate-600 mb-2">Wysokotemperaturowy polimorf (>1125°C). Ekstremalnie reaktywny w wodzie — cement kostny.</p>
+                </div>
+
+                <!-- Beta-TCP -->
+                <div class="phase-card border-t-4 border-orange-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">&beta;-TCP</h4>
+                        <span class="text-[9px] bg-orange-50 text-orange-700 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₃(PO₄)₂ | System: Romboedryczny</p>
+                    <p class="text-xs text-slate-600 mb-2">Najpopularniejszy resorbowalny biomateriał ceramiczny. Stabilny termodynamicznie do 1125°C.</p>
+                </div>
+
+                <!-- TTCP -->
+                <div class="phase-card border-t-4 border-purple-600">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-slate-800">TTCP</h4>
+                        <span class="text-[9px] bg-purple-100 text-purple-600 px-2 py-1 rounded font-bold uppercase">Ca/P: 2.0</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Ca₄(PO₄)₂O | Hilgenstockit</p>
+                    <p class="text-xs text-slate-600 mb-2">Najbardziej zasadowy z fosforanów wapnia. Powstaje powyżej 1300°C. Wysoce bioaktywny.</p>
+                </div>
+
+                <!-- CDHA -->
+                <div class="phase-card border-t-4 border-medical-500 bg-medical-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-bold text-lg text-medical-900 uppercase">CDHA</h4>
+                        <span class="text-[9px] bg-medical-200 text-medical-800 px-2 py-1 rounded font-bold uppercase">Ca/P: 1.5-1.67</span>
+                    </div>
+                    <p class="text-[10px] text-medical-600 font-bold mb-2">Calcium Deficient HA</p>
+                    <p class="text-xs text-slate-700 mb-2 font-semibold">Nasz cel w syntezie mokrej. Najbliższy odpowiednik mineralnej kości. Zawiera wakansje Ca²⁺.</p>
+                </div>
+
+                <!-- Ionic Substitution Table -->
+                <div class="phase-card bg-dark text-white border-none shadow-md flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-lg text-medical-400 mb-4 uppercase">Matryca Podstawień</h4>
+                        <div class="space-y-2 text-[11px]">
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Si</strong> <span>HIF-1&alpha; / Osteogeneza</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Sr</strong> <span>Balans Osteo Blast/Klast</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">Mg</strong> <span>Inhibicja wzrostu (BET+)</span></div>
+                            <div class="flex justify-between border-b border-slate-700 pb-1"><strong class="text-medical-300">CO₃</strong> <span>Typ B: Reaktywność</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: BIBLIOGRAFIA & METODYKA -->
+        <section id="tab-badania" class="hidden animate-fade-in space-y-10">
+            <div class="bg-dark text-white p-10 rounded-2xl shadow-md">
+                <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">🚀 Architektura Procesu</h3>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">01. SYNTEZA</h4>
+                        <p class="text-[11px] text-slate-400">DoE 2x2. pH (10.8), AR (1.0). Wirowanie 6k RPM.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">02. STRUKTURA</h4>
+                        <p class="text-[11px] text-slate-400">XRD (Scherrer), FTIR, EDS (Mapowanie Ca/P/Si), BET.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">03. BIOLOGIA</h4>
+                        <p class="text-[11px] text-slate-400">Testy MTT, Scratch test (migracja fibroblastów), qPCR.</p>
+                    </div>
+                    <div class="p-4 border-l-4 border-medical-500 bg-slate-900 rounded-r-lg">
+                        <h4 class="font-bold text-xs uppercase text-medical-400 mb-1">04. WALIDACJA</h4>
+                        <p class="text-[11px] text-slate-400">Korelacja defektów z HIF-1&alpha;. Wytyczne dla powłok Arthrex.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xl font-bold text-dark mb-6">📚 Bibliografia & Wybrane Prace</h3>
+                <div class="grid md:grid-cols-2 gap-6 text-[11px] text-slate-500 font-serif">
+                    <p>1. <strong>Gibson IR</strong> et al. SSNMR confirms silicate ion substitution in the apatitic structure of 0.8wt% Si hydroxyapatite. 2023.</p>
+                    <p>2. <strong>Steltzer SS</strong> et al. The developing tendon and enthesis are hypoxic and rely on hypoxia-inducible factor 1a (Hif1a). bioRxiv 2025.</p>
+                    <p>3. <strong>Hing KA</strong> et al. Effect of silicon level on rate, quality and progression of bone healing. Biomaterials 2006.</p>
+                    <p>4. <strong>Szurkowska K, Kolmas J.</strong> Hydroxyapatites enriched in silicon – bioceramic materials. 2017.</p>
+                    <p>5. <strong>Al-Qasas NS, Rohani S.</strong> Synthesis of Pure HAp and Effect of Synthesis Conditions on Crystallinity. 2005.</p>
+                    <p>6. <strong>Yu H</strong> et al. Microstructure and in vitro bioactivity of silicon-substituted hydroxyapatite. Silicon 2017.</p>
+                    <p class="col-span-2 text-center text-slate-400 mt-4 border-t border-slate-100 pt-4 uppercase tracking-widest font-bold">Pełna dokumentacja (50+ pozycji) dostępna w archiwum projektu.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-slate-500 py-10 text-center text-xs mt-auto border-t border-slate-800">
+        <p>PRECISION • STRUCTURE • BIOACTIVITY • ACL RECONSTRUCTION &copy; 2026</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        function switchTab(tabId) {
+            const tabs = ['koncepcja', 'krystalografia', 'proces', 'atlas', 'badania'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('tab-' + t).classList.remove('block');
+                document.getElementById('nav-' + t).classList.remove('active');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.add('block');
+            document.getElementById('nav-' + tabId).classList.add('active');
+            
+            // Critical fix to render chart ONLY after the tab is visible
+            if(tabId === 'proces' && !window.chartRendered) { 
+                // small timeout to ensure display:block has taken effect
+                setTimeout(() => {
+                    renderChart(); 
+                    window.chartRendered = true; 
+                }, 50);
+            }
+        }
+
+        const doeData = {
+            s1: { title: 'S1: sHAp (Referencja)', formula: 'Ca₁₀(PO₄)₆(OH)₂', desc: 'Hydroksyapatyt stechiometryczny. Punkt odniesienia do oceny modyfikacji chemicznych i fizycznych.' },
+            s2: { title: 'S2: Si-HAp (Gibson)', formula: 'Ca₁₀(PO₄)₅.₇(SiO₄)₀.₃(OH)₁.₇', desc: 'Izomorficzne podstawienie krzemianowe. Nadmiar ładunku ujemnego wymusza powstanie wakansów w podsieci OH⁻.' },
+            s3: { title: 'S3: C-HAp (Układ Otwarty)', formula: 'Ca₁₀₋y(PO₄)₆₋z(CO₃)z(OH)₂₋y', desc: 'Węglanowy HA. Jony węglanowe generują napięcia sieciowe i wymuszają powstanie wakansów kationowych Ca²⁺.' },
+            s4: { title: 'S4: Si-C-HAp (Docelowy)', formula: 'Ca₁₀₋y(PO₄)₅.₇₋z(SiO₄)₀.₃(CO₃)z(OH)₁.₇₋y', desc: 'Docelowy nanokompozyt. Synergia Si (HIF-1&alpha;) i CO₃ (reaktywność). Najbliższy odpowiednik biogennego minerału.' }
+        };
+
+        function selectVariant(id) {
+            document.querySelectorAll('.doe-card').forEach(el => el.classList.remove('active', 'border-medical-500'));
+            document.getElementById('card-' + id).classList.add('active', 'border-medical-500');
+            const data = doeData[id];
+            document.getElementById('variant-content').innerHTML = `
+                <h3 class="text-2xl font-bold text-dark mb-6">${data.title}</h3>
+                <div class="formula bg-dark text-medical-400 p-6 rounded-xl text-xl text-center mb-6 shadow-inner border border-slate-700 font-mono">${data.formula}</div>
+                <p class="text-slate-600 leading-relaxed border-l-[6px] border-medical-500 pl-4 italic text-sm">${data.desc}</p>
+            `;
+        }
+
+        let currentCalcModel = 'S4';
+
+        function setCalcModel(model) {
+            currentCalcModel = model;
+            document.querySelectorAll('.calc-model-btn').forEach(btn => {
+                btn.classList.remove('bg-medical-500', 'text-white', 'border-medical-500', 'shadow-sm');
+                btn.classList.add('text-slate-500', 'border-transparent', 'hover:bg-white');
+            });
+            const activeBtn = document.getElementById('calc-btn-' + model);
+            activeBtn.classList.remove('text-slate-500', 'border-transparent', 'hover:bg-white');
+            activeBtn.classList.add('bg-medical-500', 'text-white', 'border-medical-500', 'shadow-sm');
+
+            const warningEl = document.getElementById('calc-warning');
+            if (model === 'S3' || model === 'S4') {
+                warningEl.classList.remove('hidden');
+            } else {
+                warningEl.classList.add('hidden');
+            }
+            calculateMasses();
+        }
+
+        function calculateMasses() {
+            const m = parseFloat(document.getElementById('calc-mass').value) || 10;
+            let ratioCa, ratioP, ratioSi;
+
+            if (currentCalcModel === 'S1' || currentCalcModel === 'S3') {
+                ratioCa = 2.3506;
+                ratioP = 0.7887;
+                ratioSi = 0;
+                document.getElementById('out-si-container').classList.add('opacity-40');
+            } else {
+                ratioCa = 2.3646;
+                ratioP = 0.7537;
+                ratioSi = 0.06707;
+                document.getElementById('out-si-container').classList.remove('opacity-40');
+            }
+
+            document.getElementById('out-ca').innerText = (m * ratioCa).toFixed(2) + ' g';
+            document.getElementById('out-p').innerText = (m * ratioP).toFixed(2) + ' g';
+            document.getElementById('out-si').innerText = (m * ratioSi).toFixed(2) + ' mL';
+        }
+
+        function renderChart() {
+            new Chart(document.getElementById('arChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['0.6', '0.8', '1.0 (NASZ)', '1.3', '3.0', '4.0'],
+                    datasets: [{ 
+                        label: 'Średnica Aglomeratów (μm)', 
+                        data: [32, 28.5, 22.0, 16.3, 18.2, 25.6], 
+                        borderColor: '#14b8a6', 
+                        backgroundColor: 'rgba(20, 184, 166, 0.15)', 
+                        fill: true, 
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, title: { display: true, text: 'Średnica (μm)', font: { weight: 'bold' } } }, 
+                        x: { grid: { display: false }, title: { display: true, text: 'Addition Rate (mL/min)', font: { weight: 'bold' } } } 
+                    }
+                }
+            });
+        }
+
+        // Initialize state (Explicitly load tab 1 first)
+        calculateMasses();
+        selectVariant('s4');
+        window.chartRendered = false; // Will trigger when clicking Tab 3
+    </script>
+</body>
+</html>
