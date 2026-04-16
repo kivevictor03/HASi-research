@@ -6,6 +6,7 @@
     <title>Inżynieria Strukturalna Si-HAp | Pełny Raport Analityczny</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -545,6 +546,7 @@
             renderChart: function() {
                 const ctx = document.getElementById('arChart');
                 if (!ctx) return;
+                if (typeof Chart === 'undefined') return;
 
                 const rawLabels = ['0.8 mL/min (Pręciki)', '1.0 mL/min (NASZ CEL)', '1.3 mL/min (Gładkie)', '3.0 mL/min (Krawędzie)', '4.0 mL/min (Płytki/Aglomeraty)'];
                 const wrappedLabels = this.wrapLabels(rawLabels, 16);
